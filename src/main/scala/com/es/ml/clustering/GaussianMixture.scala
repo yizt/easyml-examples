@@ -17,7 +17,7 @@ object GaussianMixture {
                     appname: String = "GaussianMixture"
                    )
   def main(args: Array[String]) {
-    if (args.length < 6) {
+    if (args.length < 4) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -60,7 +60,7 @@ object GaussianMixture {
     val model = new GaussianMixture().setK(p.nunclusters).run(parsedData)
 
     //打印所有中心点
-    for (i <- 0 until gmm.k) {
+    for (i <- 0 until model.k) {
       println("weight=%f\nmu=%s\nsigma=\n%s\n" format
         (model.weights(i), model.gaussians(i).mu, model.gaussians(i).sigma))
     }

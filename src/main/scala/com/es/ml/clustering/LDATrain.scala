@@ -15,7 +15,7 @@ object LDATrain {
                     appname: String = "LDA"
                    )
   def main(args: Array[String]) {
-    if (args.length <6) {
+    if (args.length <4) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -58,7 +58,7 @@ object LDATrain {
     val parsedData = data.map(s => Vectors.dense(s.trim.split(' ').map(_.toDouble)))
     // Index documents with unique IDs
     val corpus = parsedData.zipWithIndex.map(_.swap).cache()
-    val model = new LDA().setK(3).run(corpus)
+    val model = new LDA().setK(p.nunclusters).run(corpus)
 
     println("Learned topics (as distributions over vocab of " + model.vocabSize + " words):")
     val topics = model.topicsMatrix
