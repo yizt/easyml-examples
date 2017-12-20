@@ -57,7 +57,7 @@ object DataFrame2Text {
     val conf = new SparkConf().setAppName(p.appName)
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
-
+    import sqlContext.sparkSession.implicits._
     val inputDF = sqlContext.read.parquet(p.input)
 
     //保存结果
