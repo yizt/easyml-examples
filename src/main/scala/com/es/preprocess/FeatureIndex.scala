@@ -1,25 +1,24 @@
 package com.es.preprocess
 
 import com.es.util.DataFrameUtil
-import org.apache.spark.ml.feature.{StopWordsRemover}
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.sql.types.{LongType, StructField}
 import org.apache.spark.{SparkConf, SparkContext}
 import scopt.OptionParser
 
 /**
-  * Created by mick.yi on 2017/12/19.
-  * 停用词去除
+  * Created by mick.yi on 2017/12/20.
+  * 特征索引
   */
-object StopWordsRemover {
-
+object FeatureIndex {
   /** 命令行参数 */
   case class Params(input: String = "", //输入数据,parquet格式
-                    stopWordPath: String = "", //停用词数据存放路径
+                    featurePath: String = "", //特征保存路径
                     output: String = "", //输出数据,parquet格式
-                    inputCol: String = "", //处理列名
-                    outputCol: String = "", //去除停用词后的结果保存列名
+                    inputCol: String = "", //特征文本列
+                    outputCol: String = "", //结果输出列
                     resultCols: String = "", //输出结果保留的列,默认全部输出
-                    appName: String = "StopWordsRemover"
+                    appName: String = "FeatureIndex"
                    )
 
   def main(args: Array[String]) {
@@ -29,16 +28,16 @@ object StopWordsRemover {
     }
 
     val default_params = Params()
-    val parser = new OptionParser[Params]("StopWordsRemover") {
-      head("StopWordsRemover:.")
+    val parser = new OptionParser[Params]("FeatureIndex") {
+      head("FeatureIndex:.")
       opt[String]("input")
         .required()
         .text("输入数据")
         .action((x, c) => c.copy(input = x))
-      opt[String]("stopWordPath")
+      opt[String]("featurePath")
         .required()
-        .text("停用词数据存放路径")
-        .action((x, c) => c.copy(stopWordPath = x))
+        .text("特征保存路径")
+        .action((x, c) => c.copy(featurePath = x))
       opt[String]("output")
         .required()
         .text("输出数据")
@@ -49,11 +48,11 @@ object StopWordsRemover {
         .action((x, c) => c.copy(appName = x))
       opt[String]("inputCol")
         .required()
-        .text("处理列名")
+        .text("分词列")
         .action((x, c) => c.copy(inputCol = x))
       opt[String]("outputCol")
         .required()
-        .text("去除停用词后的结果保存列名")
+        .text("分词结果输出列")
         .action((x, c) => c.copy(outputCol = x))
       opt[String]("resultCols")
         .required()
@@ -73,17 +72,37 @@ object StopWordsRemover {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
+    import sqlContext.implicits._
     val inputDF = sqlContext.read.parquet(p.input)
-    //加载停用词(默认一个词一行
-    val stopWords = sc.textFile(p.stopWordPath).collect()
-    //定义分词器
-    val remover = new StopWordsRemover().
-      setInputCol(p.inputCol).
-      setOutputCol(p.outputCol).
-      setStopWords(stopWords)
+    //加载特征文本
+    val featureIdxMap = sc.textFile(p.featurePath).distinct().collect().zipWithIndex.toMap
+
+    //增加索引列id
+    val schema = inputDF.schema.add(StructField("id", LongType, true))
+    val newRdd = inputDF.rdd.zipWithIndex().map { case (row, id) => {
+      Row.merge(row, Row.fromTuple(Tuple1(id)))
+    }
+    }
+    val newDF = sqlContext.createDataFrame(newRdd, schema)
+
+    //特征名转特征索引
+    val dataDF = newDF.select("id", p.inputCol).map(row => {
+      val rowIdx = row.getAs[Long]("id") //行号
+      val text = row.getAs[String](p.inputCol)
+      val newText=text.split(" ").map { feature => {
+        val arr=feature.split(":")
+        val featureName=arr(0)
+        val feafureVal=arr(1).toDouble
+        val featureIndex=featureIdxMap.getOrElse(featureName,-1)
+        featureIndex+":"+feafureVal //从 特征名:特征值 转为 特征索引号:特征值
+      }.mkString(" ")
+      }
+      (rowIdx,newText)
+    }).toDF("id",p.outputCol)
+
 
     //转换数据
-    val outputDF = remover.transform(inputDF)
+    val outputDF = dataDF.join(newDF, "id")
 
     //保存结果
     val resultDF = DataFrameUtil.select(outputDF, p.resultCols) //只保存选择的列
@@ -91,4 +110,5 @@ object StopWordsRemover {
 
     sc.stop()
   }
+
 }

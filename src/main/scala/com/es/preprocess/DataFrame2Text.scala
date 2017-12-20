@@ -1,35 +1,41 @@
 package com.es.preprocess
 
+import com.es.util.DataFrameUtil
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import scopt.OptionParser
 
 /**
   * Created by mick.yi on 2017/12/20.
-  * 自定义IDF统计,输出默认为 word idf两列,空格分隔，保存为文本格式
+  * DataFrame转为Text
   */
-object IDF {
+object DataFrame2Text {
 
   /** 命令行参数 */
   case class Params(input: String = "", //输入数据,parquet格式
                     output: String = "", //输出数据,text格式
-                    inputCol: String = "", //句子列
-                    appName: String = "IDF"
+                    delemiter: String = " ", //列分隔符，默认空格
+                    resultCols: String = "", //输出结果保留的列,默认全部输出
+                    appName: String = "DataFrame2Text"
                    )
 
   def main(args: Array[String]) {
-    if (args.length < 5) {
+    if (args.length < 2) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
 
     val default_params = Params()
-    val parser = new OptionParser[Params]("IDF") {
-      head("IDF:.")
+    val parser = new OptionParser[Params]("DataFrame2Text") {
+      head("DataFrame2Text:.")
       opt[String]("input")
         .required()
         .text("输入数据")
         .action((x, c) => c.copy(input = x))
+      opt[String]("delemiter")
+        .required()
+        .text("列分隔符，默认空格")
+        .action((x, c) => c.copy(delemiter = x))
       opt[String]("output")
         .required()
         .text("输出数据")
@@ -38,10 +44,6 @@ object IDF {
         .required()
         .text("appName")
         .action((x, c) => c.copy(appName = x))
-      opt[String]("inputCol")
-        .required()
-        .text("句子列")
-        .action((x, c) => c.copy(inputCol = x))
     }
     parser.parse(args, default_params).map { params =>
       run(params)
@@ -57,23 +59,11 @@ object IDF {
     val sqlContext = new SQLContext(sc)
 
     val inputDF = sqlContext.read.parquet(p.input)
-    import sqlContext.sparkSession.implicits._
-    val textRDD = inputDF.select(p.inputCol).
-      map(_.getAs[String](p.inputCol)).
-      map(_.split(" "))
-    textRDD.cache()
 
-    val docNum = textRDD.count()
-
-    val idfRDD = textRDD.
-      flatMap(x => x).map((_, 1))
-      .rdd.reduceByKey(_ + _).map { case (word, wordNum) => {
-      $"${word} ${Math.log(docNum.toDouble / wordNum)}" //求idf值
-    }
-    }
-    //保存idf结果
-    idfRDD.saveAsTextFile(p.output)
-
+    //保存结果
+    val resultDF = DataFrameUtil.select(inputDF, p.resultCols) //只保存选择的列
+    resultDF.map(_.mkString(" ")).rdd.saveAsTextFile(p.output)
     sc.stop()
   }
+
 }

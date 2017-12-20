@@ -10,12 +10,14 @@ import scopt.OptionParser
   * svm 训练
   */
 object SVMTrain {
+
   /** 命令行参数 */
   case class Params(train_data: String = "", //训练数据路径
-                    model_out: String = "",  //模型保存路径
+                    model_out: String = "", //模型保存路径
                     appname: String = "SVM_Train",
-                    num_iterations: Int = 100  //训练迭代次数
+                    num_iterations: Int = 100 //训练迭代次数
                    )
+
   def main(args: Array[String]) {
     if (args.length < 2) {
       System.err.println("Usage: <file>")
@@ -51,12 +53,12 @@ object SVMTrain {
 
   }
 
-  def run(p:Params): Unit = {
+  def run(p: Params): Unit = {
     val conf = new SparkConf().setAppName(p.appname)
     val sc = new SparkContext(conf)
-    val training = MLUtils.loadLibSVMFile(sc,p.train_data) //加载数据
+    val training = MLUtils.loadLibSVMFile(sc, p.train_data) //加载数据
     val model = SVMWithSGD.train(training, p.num_iterations) //训练
-    model.save(sc,p.model_out) //保存模型
+    model.save(sc, p.model_out) //保存模型
     sc.stop()
   }
 }

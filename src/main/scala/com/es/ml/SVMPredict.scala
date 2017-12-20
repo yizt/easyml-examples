@@ -10,12 +10,14 @@ import scopt.OptionParser
   * svm预测
   */
 object SVMPredict {
+
   /** 命令行参数 */
   case class Params(test_data: String = "", //测试数据路径
-                     model_path: String = "", //模型路径
+                    model_path: String = "", //模型路径
                     predict_out: String = "", //预测结果保存路径
                     appname: String = "Svm_Predict"
                    )
+
   def main(args: Array[String]) {
     if (args.length < 6) {
       System.err.println("Usage: <file>")
@@ -49,17 +51,18 @@ object SVMPredict {
     }
 
   }
-  def run(p:Params): Unit = {
+
+  def run(p: Params): Unit = {
     val conf = new SparkConf().setAppName(p.appname)
     val sc = new SparkContext(conf)
     val model = SVMModel.load(sc, p.model_path) //加载模型
-    val testdata = MLUtils.loadLibSVMFile(sc,p.test_data) //加载数据
+    val testdata = MLUtils.loadLibSVMFile(sc, p.test_data) //加载数据
     //预测数据
     val scoreAndLabels = testdata.map { point =>
         val score = model.predict(point.features)
         (score, point.label)
       }
-    scoreAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
+    scoreAndLabels.saveAsTextFile(p.predict_out) //保存预测结果
     sc.stop()
   }
 }
