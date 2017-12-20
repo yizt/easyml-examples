@@ -13,7 +13,7 @@ object FileSplit {
   case class Params(input: String = "", //输入数据,text格式
                     outputA: String = "", //输出数据A,text格式
                     outputB: String = "", //输出数据B,text格式
-                    ratio: Float = 0.5f, //分割比例
+                    ratio: Double = 0.5d, //分割比例
                     appName: String = "FileSplit"
                    )
 
@@ -42,7 +42,7 @@ object FileSplit {
         .required()
         .text("appName")
         .action((x, c) => c.copy(appName = x))
-      opt[Float]("ratio")
+      opt[Double]("ratio")
         .required()
         .text("分割比例")
         .action((x, c) => c.copy(ratio = x))
