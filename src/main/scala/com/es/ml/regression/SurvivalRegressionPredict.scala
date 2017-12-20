@@ -61,7 +61,7 @@ object SurvivalRegressionPredict {
     //预测数据
     val result =  model.transform(testdata)
     val predictionAndLabels = result.select("prediction", "label")
-    //predictionAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
+    predictionAndLabels.write.save(p.predict_out)//保存预测结果
     sc.stop()
   }
 }
