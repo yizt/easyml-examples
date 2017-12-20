@@ -33,6 +33,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>com.huaban</groupId>
+            <artifactId>jieba-analysis</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
         <!-- Spark -->
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -214,6 +220,7 @@
             <version>2.11.0-M1</version>
             <scope>${spark.scope}</scope>
         </dependency>
+
 
 
 
