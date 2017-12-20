@@ -20,7 +20,7 @@ object GradientBoostedTreesRegressionPredict {
                    )
 
   def main(args: Array[String]) {
-    if (args.length < 6) {
+    if (args.length < 4) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }

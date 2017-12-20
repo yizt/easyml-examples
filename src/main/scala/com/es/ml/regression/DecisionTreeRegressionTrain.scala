@@ -21,7 +21,7 @@ object DecisionTreeRegressionTrain {
                     max_bins : Int = 32 //
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 7) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -45,7 +45,7 @@ object DecisionTreeRegressionTrain {
         .required()
         .text("迭代次数")
         .action((x, c) => c.copy(num_classes = x))
-      opt[Int]("impurity")
+      opt[String]("impurity")
         .required()
         .text("impurity")
         .action((x, c) => c.copy(impurity = x))
@@ -71,13 +71,10 @@ object DecisionTreeRegressionTrain {
     val conf = new SparkConf().setAppName(p.appname)
     val sc = new SparkContext(conf)
     val categoricalFeaturesInfo = Map[Int, Int]()
-    val numClasses = 2
-    val impurity = "gini"
-    val maxDepth = 5
-    val maxBins = 32
+
     val training = MLUtils.loadLibSVMFile(sc,p.train_data) //加载数据
-    val model = DecisionTree.trainRegressor(training, categoricalFeaturesInfo, impurity,
-        maxDepth, maxBins)
+    val model = DecisionTree.trainRegressor(training, categoricalFeaturesInfo, p.impurity,
+        p.max_depth, p.max_bins)
     model.save(sc,p.model_out) //保存模型
     sc.stop()
   }

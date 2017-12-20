@@ -19,7 +19,7 @@ object GeneralizedLinearRegressionPredict {
                    )
 
   def main(args: Array[String]) {
-    if (args.length < 6) {
+    if (args.length < 4) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -62,7 +62,8 @@ object GeneralizedLinearRegressionPredict {
     //预测数据
     val result =  model.transform(testdata)
     val predictionAndLabels = result.select("prediction", "label")
-    //predictionAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
+    predictionAndLabels.write.save(p.predict_out)//保存预测结果
+
     sc.stop()
   }
 }

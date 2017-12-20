@@ -13,10 +13,13 @@ object GeneralizedLinearRegressionTrain {
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
                     appname: String = "GeneralizedLinearRegression_Train",
-                    num_iterations: Int = 100  //训练迭代次数
+                    family: String = "gaussian", //
+                    link: String="identity",//
+                    max_iter:Int=10,//迭代次数
+                    reg_param:Double=0.3//
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 7) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -36,10 +39,22 @@ object GeneralizedLinearRegressionTrain {
         .required()
         .text("appname")
         .action((x, c) => c.copy(appname = x))
-      opt[Int]("num_iterations")
+      opt[String]("family")
+        .required()
+        .text("family")
+        .action((x, c) => c.copy(family = x))
+      opt[String]("link")
+        .required()
+        .text("link")
+        .action((x, c) => c.copy(link = x))
+      opt[Int]("max_iter")
         .required()
         .text("迭代次数")
-        .action((x, c) => c.copy(num_iterations = x))
+        .action((x, c) => c.copy(max_iter = x))
+      opt[Double]("reg_param")
+        .required()
+        .text("reg_param")
+        .action((x, c) => c.copy(reg_param = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -57,10 +72,10 @@ object GeneralizedLinearRegressionTrain {
     val training = spark.read.format("libsvm").load(p.train_data) //加载数据
 
     val glr = new GeneralizedLinearRegression()
-      .setFamily("gaussian")
-      .setLink("identity")
-      .setMaxIter(10)
-      .setRegParam(0.3)
+      .setFamily(p.family)
+      .setLink(p.link)
+      .setMaxIter(p.max_iter)
+      .setRegParam(p.reg_param)
 
     // Fit the model
     val model = glr.fit(training)
