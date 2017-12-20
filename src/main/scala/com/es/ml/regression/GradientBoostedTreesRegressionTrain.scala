@@ -1,24 +1,21 @@
 package com.es.ml.regression
-
-import org.apache.spark.mllib.tree.DecisionTree
+import org.apache.spark.mllib.tree.GradientBoostedTrees
+import org.apache.spark.mllib.tree.configuration.BoostingStrategy
+import org.apache.spark.mllib.tree.model.GradientBoostedTreesModel
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.{SparkConf, SparkContext}
 import scopt.OptionParser
 
-
 /**
   * Created by zhangw on 2017/12/18.
-  * DecisionTreeRegression 训练
+  * GradientBoostedTreesRegression 训练
   */
-object DecisionTreeRegressionTrain {
+object GradientBoostedTreesRegressionTrain {
   /** 命令行参数 */
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
-                    appname: String = "DecisionTreeRegression_Train",
-                    num_classes: Int = 2, //类别数
-                    impurity: String = "gini", //
-                    max_depth : Int = 5, //最大深度
-                    max_bins : Int = 32 //
+                    appname: String = "GradientBoostedTreesRegression_Train",
+                    num_iterations: Int = 100  //训练迭代次数
                    )
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -27,8 +24,8 @@ object DecisionTreeRegressionTrain {
     }
 
     val default_params = Params()
-    val parser = new OptionParser[Params]("DecisionTreeRegression_Train") {
-      head("DecisionTreeRegression_Train: 决策树回归训练.")
+    val parser = new OptionParser[Params]("GradientBoostedTreesRegression_Train") {
+      head("GradientBoostedTreesRegression_Train: 梯度提升树回归训练.")
       opt[String]("train_data")
         .required()
         .text("训练数据路径")
@@ -41,22 +38,10 @@ object DecisionTreeRegressionTrain {
         .required()
         .text("appname")
         .action((x, c) => c.copy(appname = x))
-      opt[Int]("num_classes")
+      opt[Int]("num_iterations")
         .required()
         .text("迭代次数")
-        .action((x, c) => c.copy(num_classes = x))
-      opt[Int]("impurity")
-        .required()
-        .text("impurity")
-        .action((x, c) => c.copy(impurity = x))
-      opt[Int]("max_depth")
-        .required()
-        .text("最大深度")
-        .action((x, c) => c.copy(max_depth = x))
-      opt[Int]("max_bins")
-        .required()
-        .text("max_bins")
-        .action((x, c) => c.copy(max_bins = x))
+        .action((x, c) => c.copy(num_iterations = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -70,14 +55,15 @@ object DecisionTreeRegressionTrain {
   def run(p:Params): Unit = {
     val conf = new SparkConf().setAppName(p.appname)
     val sc = new SparkContext(conf)
-    val categoricalFeaturesInfo = Map[Int, Int]()
-    val numClasses = 2
-    val impurity = "gini"
-    val maxDepth = 5
-    val maxBins = 32
+    val boostingStrategy = BoostingStrategy.defaultParams("Regression")
+     boostingStrategy.numIterations = 3 // Note: Use more iterations in practice.
+     boostingStrategy.treeStrategy.maxDepth = 5
+    // Empty categoricalFeaturesInfo indicates all features are continuous.
+     boostingStrategy.treeStrategy.categoricalFeaturesInfo = Map[Int, Int]()
+
     val training = MLUtils.loadLibSVMFile(sc,p.train_data) //加载数据
-    val model = DecisionTree.trainRegressor(training, categoricalFeaturesInfo, impurity,
-        maxDepth, maxBins)
+    val model = GradientBoostedTrees.train(training, boostingStrategy)
+
     model.save(sc,p.model_out) //保存模型
     sc.stop()
   }
