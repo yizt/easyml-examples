@@ -29,7 +29,7 @@ object StopWordsRemover {
     }
 
     val default_params = Params()
-    val parser = new OptionParser[Params]("Tokenizer") {
+    val parser = new OptionParser[Params]("StopWordsRemover") {
       head("StopWordsRemover:.")
       opt[String]("input")
         .required()
