@@ -13,10 +13,10 @@ object IsotonicRegressionTrain {
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
                     appname: String = "IsotonicRegression_Train",
-                    num_iterations: Int = 100  //训练迭代次数
+                    isotonic: Boolean = true  //
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 4) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
@@ -36,10 +36,10 @@ object IsotonicRegressionTrain {
         .required()
         .text("appname")
         .action((x, c) => c.copy(appname = x))
-      opt[Int]("num_iterations")
+      opt[Boolean]("isotonic")
         .required()
-        .text("迭代次数")
-        .action((x, c) => c.copy(num_iterations = x))
+        .text("isotonic")
+        .action((x, c) => c.copy(isotonic = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -58,7 +58,7 @@ object IsotonicRegressionTrain {
     val training = data.map { labeledPoint =>
         (labeledPoint.label, labeledPoint.features(0), 1.0)
       }
-    val model = new IsotonicRegression().setIsotonic(true).run(training)
+    val model = new IsotonicRegression().setIsotonic(p.isotonic).run(training)
 
     model.save(sc,p.model_out) //保存模型
     sc.stop()

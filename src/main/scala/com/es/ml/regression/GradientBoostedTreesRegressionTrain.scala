@@ -15,7 +15,10 @@ object GradientBoostedTreesRegressionTrain {
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
                     appname: String = "GradientBoostedTreesRegression_Train",
-                    num_iterations: Int = 100  //训练迭代次数
+                    default_params: String = "Classification", //默认参数
+                    num_iterations:Int=3, //迭代次数
+                    num_classes:Int=2, //类别数
+                    max_depth:Int=5 //最大深度
                    )
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -42,6 +45,18 @@ object GradientBoostedTreesRegressionTrain {
         .required()
         .text("迭代次数")
         .action((x, c) => c.copy(num_iterations = x))
+      opt[String]("default_params")
+        .required()
+        .text("默认参数")
+        .action((x, c) => c.copy(default_params = x))
+      opt[Int]("num_classes")
+        .required()
+        .text("类别数")
+        .action((x, c) => c.copy(num_classes = x))
+      opt[Int]("max_depth")
+        .required()
+        .text("最大深度")
+        .action((x, c) => c.copy(max_depth = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -55,9 +70,9 @@ object GradientBoostedTreesRegressionTrain {
   def run(p:Params): Unit = {
     val conf = new SparkConf().setAppName(p.appname)
     val sc = new SparkContext(conf)
-    val boostingStrategy = BoostingStrategy.defaultParams("Regression")
-     boostingStrategy.numIterations = 3 // Note: Use more iterations in practice.
-     boostingStrategy.treeStrategy.maxDepth = 5
+    val boostingStrategy = BoostingStrategy.defaultParams(p.default_params)
+     boostingStrategy.numIterations = p.num_iterations // Note: Use more iterations in practice.
+     boostingStrategy.treeStrategy.maxDepth = p.max_depth
     // Empty categoricalFeaturesInfo indicates all features are continuous.
      boostingStrategy.treeStrategy.categoricalFeaturesInfo = Map[Int, Int]()
 
