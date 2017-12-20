@@ -13,7 +13,9 @@ object SurvivalRegressionTrain {
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
                     appname: String = "SurvivalRegression_Train",
-                    num_iterations: Int = 100  //训练迭代次数
+                    quantile_probabilities_1: Double = 100 , //训练迭代次数
+                    quantile_probabilities_2: Double = 100 , //训练迭代次数
+                    quantiles_col:String="quantiles"
                    )
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -36,10 +38,18 @@ object SurvivalRegressionTrain {
         .required()
         .text("appname")
         .action((x, c) => c.copy(appname = x))
-      opt[Int]("num_iterations")
+      opt[Double]("quantile_probabilities_1")
         .required()
-        .text("迭代次数")
-        .action((x, c) => c.copy(num_iterations = x))
+        .text("quantile_probabilities_1")
+        .action((x, c) => c.copy(quantile_probabilities_1 = x))
+      opt[Double]("quantile_probabilities_2")
+        .required()
+        .text("quantile_probabilities_2")
+        .action((x, c) => c.copy(quantile_probabilities_2 = x))
+      opt[String]("quantiles_col")
+        .required()
+        .text("quantiles_col")
+        .action((x, c) => c.copy(quantiles_col = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -64,10 +74,10 @@ object SurvivalRegressionTrain {
       (4.199, 0.0, Vectors.dense(0.795, -0.226))
     )).toDF("label", "censor", "features")*/
 
-    val quantileProbabilities = Array(0.3, 0.6)
+    val quantileProbabilities = Array(p.quantile_probabilities_1, p.quantile_probabilities_2)
     val aft = new AFTSurvivalRegression()
       .setQuantileProbabilities(quantileProbabilities)
-      .setQuantilesCol("quantiles")
+      .setQuantilesCol(p.quantiles_col)
 
     // Fit the model
     val model = aft.fit(training)
@@ -79,8 +89,6 @@ object SurvivalRegressionTrain {
     model.transform(training).show(false)
 
     model.save(p.model_out) //保存模型
-
-
     sc.stop()
   }
 }

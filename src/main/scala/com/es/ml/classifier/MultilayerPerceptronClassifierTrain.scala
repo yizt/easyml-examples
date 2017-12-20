@@ -16,7 +16,11 @@ object MultilayerPerceptronClassifierTrain {
                     appname: String = "MultilayerPerceptronClassifier_Train",
                     max_iter: Int = 100,  //迭代次数
                     blocksize:Int=128,
-                    seed:Long=1234L
+                    seed:Long=1234L,
+                    layers_1:Int=4,
+                    layers_2:Int=5,
+                    layers_3:Int=4,
+                    layers_4:Int=3
                    )
   def main(args: Array[String]) {
     if (args.length < 6) {
@@ -51,6 +55,22 @@ object MultilayerPerceptronClassifierTrain {
         .required()
         .text("种子")
         .action((x, c) => c.copy(seed = x))
+      opt[Int]("layers_1")
+        .required()
+        .text("layers_1")
+        .action((x, c) => c.copy(layers_1 = x))
+      opt[Int]("layers_2")
+        .required()
+        .text("layers_2")
+        .action((x, c) => c.copy(layers_2 = x))
+      opt[Int]("layers_3")
+        .required()
+        .text("layers_3")
+        .action((x, c) => c.copy(layers_3 = x))
+      opt[Int]("layers_4")
+        .required()
+        .text("layers_4")
+        .action((x, c) => c.copy(layers_4 = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -70,7 +90,7 @@ object MultilayerPerceptronClassifierTrain {
     // specify layers for the neural network:
     // input layer of size 4 (features), two intermediate of size 5 and 4
     // and output of size 3 (classes)
-    val layers = Array[Int](4, 5, 4, 3)
+    val layers = Array[Int](p.layers_1, p.layers_2, p.layers_3, p.layers_4)
 
     // create the trainer and set its parameters
     val trainer = new MultilayerPerceptronClassifier()
