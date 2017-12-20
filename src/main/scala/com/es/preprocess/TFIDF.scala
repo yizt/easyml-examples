@@ -33,9 +33,7 @@ object TFIDF {
 
     import org.apache.spark.ml.feature.StopWordsRemover
 
-    val remover = new StopWordsRemover().
-      setInputCol("raw").
-      setOutputCol("filtered")
+
 
     val hashingTF = new HashingTF()
       .setInputCol("words").setOutputCol("rawFeatures").setNumFeatures(20)

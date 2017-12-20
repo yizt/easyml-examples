@@ -17,8 +17,8 @@ object WordSegment {
   case class Params(input: String = "", //输入数据,parquet格式
                     output: String = "", //输出数据,parquet格式
                     inputCol: String = "", //分词列
-                    outputCol: String = "", //分词结果输出列,默认全部输出
-                    resultCols: String = "", //输出结果保留的列
+                    outputCol: String = "", //分词结果输出列
+                    resultCols: String = "", //输出结果保留的列,默认全部输出
                     appName: String = "Tokenizer"
                    )
 

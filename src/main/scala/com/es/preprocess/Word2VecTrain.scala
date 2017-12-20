@@ -18,7 +18,7 @@ object Word2VecTrain {
                     vectorSize: Int = 200, //词向量维度
                     windowSize: Int = 5, //窗口大小
                     maxIter: Int = 100, //最大迭代次数
-                    stepSize: Float = 0.025f, //学习率
+                    //stepSize: Float = 0.025f, //学习率
                     numPartitions: Int = 1, //分区数
                     minCount: Int = 5, //进入word2vec的最小词频数
                     maxSentenceLength: Int = 20, //句子最大长度
@@ -60,10 +60,6 @@ object Word2VecTrain {
         .required()
         .text("迭代次数")
         .action((x, c) => c.copy(maxIter = x))
-      opt[Float]("stepSize")
-        .required()
-        .text("学习率")
-        .action((x, c) => c.copy(stepSize = x))
       opt[Int]("numPartitions")
         .required()
         .text("分区数")
