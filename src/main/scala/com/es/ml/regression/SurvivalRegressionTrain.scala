@@ -13,12 +13,12 @@ object SurvivalRegressionTrain {
   case class Params(train_data: String = "", //训练数据路径
                     model_out: String = "",  //模型保存路径
                     appname: String = "SurvivalRegression_Train",
-                    quantile_probabilities_1: Double = 100 , //训练迭代次数
-                    quantile_probabilities_2: Double = 100 , //训练迭代次数
+                    quantile_probabilities_1: Double = 0.3 , //
+                    quantile_probabilities_2: Double = 0.6 , //
                     quantiles_col:String="quantiles"
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 6) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }

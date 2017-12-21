@@ -16,7 +16,7 @@ object DecisionTreeRegressionTrain {
                     model_out: String = "",  //模型保存路径
                     appname: String = "DecisionTreeRegression_Train",
                     num_classes: Int = 2, //类别数
-                    impurity: String = "gini", //
+                    impurity: String = "variance", //
                     max_depth : Int = 5, //最大深度
                     max_bins : Int = 32 //
                    )

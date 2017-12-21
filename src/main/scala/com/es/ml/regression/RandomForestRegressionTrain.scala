@@ -23,7 +23,7 @@ object RandomForestRegressionTrain {
                     max_bins : Int= 32//
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 9) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }

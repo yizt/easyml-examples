@@ -12,7 +12,7 @@ import scopt.OptionParser
 object MultilayerPerceptronClassifierTrain {
   /** 命令行参数 */
   case class Params(train_data: String = "", //训练数据路径
-                    model_out: String = "",  //模型保存路径
+                      model_out: String = "",  //模型保存路径
                     appname: String = "MultilayerPerceptronClassifier_Train",
                     max_iter: Int = 100,  //迭代次数
                     blocksize:Int=128,
@@ -23,7 +23,7 @@ object MultilayerPerceptronClassifierTrain {
                     layers_4:Int=3
                    )
   def main(args: Array[String]) {
-    if (args.length < 6) {
+    if (args.length < 10) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
