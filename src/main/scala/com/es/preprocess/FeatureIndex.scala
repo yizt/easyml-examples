@@ -103,7 +103,7 @@ object FeatureIndex {
         (featureIndex , feafureVal)
       }
       }.filter{case(featureIndex , feafureVal)=>{
-        featureIndex >= 0
+        featureIndex >= 0 && feafureVal != 0
       }}.sortBy(_._1).   //顺序
         map{case(featureIndex , feafureVal)=>{
         featureIndex + ":" + feafureVal //从 特征名:特征值 转为 特征索引号:特征值

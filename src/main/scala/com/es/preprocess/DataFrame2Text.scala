@@ -63,10 +63,20 @@ object DataFrame2Text {
     val sqlContext = new SQLContext(sc)
     import sqlContext.sparkSession.implicits._
     val inputDF = sqlContext.read.parquet(p.input)
-
+    Array().mkString("")
     //保存结果
     val resultDF = DataFrameUtil.select(inputDF, p.resultCols) //只保存选择的列
-    resultDF.map(_.mkString(" ")).rdd.saveAsTextFile(p.output)
+    val delemiter=p.delemiter match { //转义处理
+      case "\\t" => "\t"
+      case "\t" => "\t"
+      case "\\n" => "\n"
+      case "\n" => "\n"
+      case "\\r" => "\r"
+      case "\r" => "\r"
+      case other:String => other
+    }
+    println(s"p.delemiter:${p.delemiter};delemiter:${delemiter}")
+    resultDF.map(_.mkString(delemiter)).rdd.saveAsTextFile(p.output)
     sc.stop()
   }
 
