@@ -44,6 +44,10 @@ object DataFrame2Text {
         .required()
         .text("appName")
         .action((x, c) => c.copy(appName = x))
+      opt[String]("resultCols")
+        .required()
+        .text("输出结果保留的列")
+        .action((x, c) => c.copy(resultCols = x))
     }
     parser.parse(args, default_params).map { params =>
       run(params)

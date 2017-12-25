@@ -1,5 +1,6 @@
 package com.es.preprocess
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import scopt.OptionParser
@@ -62,9 +63,12 @@ object Text2DataFrame {
     val sqlContext = new SQLContext(sc)
 
     import sqlContext.implicits._
+
     val inputRDD = sc.textFile(p.input)
-    val inputDF = inputRDD.map(line => {
-      val colVals = line.split(p.delemiter)
+    val colNames=p.colNames.split(",") //列名逗号分隔
+    println(s"p.delemiter:${p.delemiter}")
+    val inputRDDTuple =  inputRDD.map(line => {
+      val colVals = strToFixLengthArray(line,p.delemiter,colNames.length)
       //数组转为tuple
       colVals match {
         case Array(a) => Tuple1(a)
@@ -74,10 +78,41 @@ object Text2DataFrame {
         case Array(a, b, c, d, e) => (a, b, c, d, e)
         case Array(a, b, c, d, e, f) => (a, b, c, d, e, f)
       }
-    }).toDF(p.colNames)
+    })
+
+    val inputDF=colNames.length match {
+      case 1 => inputRDDTuple.asInstanceOf[RDD[Tuple1[String]]].toDF(colNames:_*)
+      case 2 => inputRDDTuple.asInstanceOf[RDD[Tuple2[String,String]]].toDF(colNames:_*)
+      case 3 => inputRDDTuple.asInstanceOf[RDD[Tuple3[String,String,String]]].toDF(colNames:_*)
+      case 4 => inputRDDTuple.asInstanceOf[RDD[Tuple4[String,String,String,String]]].toDF(colNames:_*)
+      case 5 => inputRDDTuple.asInstanceOf[RDD[Tuple5[String,String,String,String,String]]].toDF(colNames:_*)
+      case 6 => inputRDDTuple.asInstanceOf[RDD[Tuple6[String,String,String,String,String,String]]].toDF(colNames:_*)
+    }
+
 
     //保存结果
     inputDF.write.parquet(p.output)
     sc.stop()
+  }
+
+  /**
+    * 将字符串转为固定的长度，多余的元素合并为最后一个元素
+    * @param text
+    * @param delemiter
+    * @param arrLength
+    * @return
+    */
+  private def strToFixLengthArray(text:String,delemiter:String,arrLength:Int):Array[String]={
+    val arr=text.split(delemiter)
+    if(arrLength==1)
+      Array(text)
+    else if(arr.length<=arrLength)
+      arr
+    else{
+      val lastElem=for (i <- arrLength-1 until arr.length) yield arr(i)
+      val preElems=for (i <- 0 until arrLength-1) yield arr(i)
+      val res=preElems.:+(lastElem.mkString(delemiter))
+      res.toArray
+    }
   }
 }

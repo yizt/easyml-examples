@@ -63,14 +63,20 @@ object IDF {
       map(_.split(" "))
     textRDD.cache()
 
-    val docNum = textRDD.count()
+    val docNum = textRDD.count() //文章总数
 
-    val idfRDD = textRDD.
-      flatMap(x => x).map((_, 1))
-      .rdd.reduceByKey(_ + _).map { case (word, wordNum) => {
-      $"${word} ${Math.log(docNum.toDouble / wordNum)}" //求idf值
+
+    val idfRDD = textRDD.rdd.zipWithIndex().map { case (wordList, idx) => {
+      wordList.map(x => (x, List(idx)))
     }
-    }
+    }.
+      flatMap(x => x).reduceByKey(_ ::: _)
+      .map { case (word, docList) => {
+        //词，词出现的文档列表
+        val occurDocNum = docList.toSet.size
+        word + " " + Math.log(docNum / occurDocNum) //求idf值
+      }
+      }
     //保存idf结果
     idfRDD.saveAsTextFile(p.output)
 

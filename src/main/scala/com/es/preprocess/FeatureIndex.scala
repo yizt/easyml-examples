@@ -11,6 +11,7 @@ import scopt.OptionParser
   * 特征索引
   */
 object FeatureIndex {
+
   /** 命令行参数 */
   case class Params(input: String = "", //输入数据,parquet格式
                     featurePath: String = "", //特征保存路径
@@ -75,30 +76,41 @@ object FeatureIndex {
     import sqlContext.implicits._
     val inputDF = sqlContext.read.parquet(p.input)
     //加载特征文本
-    val featureIdxMap = sc.textFile(p.featurePath).distinct().collect().zipWithIndex.toMap
+    val featureIdxMap = sc.textFile(p.featurePath).distinct().collect().
+      zipWithIndex.toMap.
+      map{case(word,idx)=>(word,idx+1)}  //改为1-基准索引
 
     //增加索引列id
-    val schema = inputDF.schema.add(StructField("id", LongType, true))
-    val newRdd = inputDF.rdd.zipWithIndex().map { case (row, id) => {
-      Row.merge(row, Row.fromTuple(Tuple1(id)))
-    }
-    }
-    val newDF = sqlContext.createDataFrame(newRdd, schema)
+    val newDF = if (!inputDF.schema.fieldNames.contains("id")) {
+      val schema = inputDF.schema.add(StructField("id", LongType, true))
+      val newRdd = inputDF.rdd.zipWithIndex().map { case (row, id) => {
+        Row.merge(row, Row.fromTuple(Tuple1(id)))
+      }
+      }
+      sqlContext.createDataFrame(newRdd, schema)
+    } else
+      inputDF
 
     //特征名转特征索引
     val dataDF = newDF.select("id", p.inputCol).map(row => {
       val rowIdx = row.getAs[Long]("id") //行号
       val text = row.getAs[String](p.inputCol)
-      val newText=text.split(" ").map { feature => {
-        val arr=feature.split(":")
-        val featureName=arr(0)
-        val feafureVal=arr(1).toDouble
-        val featureIndex=featureIdxMap.getOrElse(featureName,-1)
-        featureIndex+":"+feafureVal //从 特征名:特征值 转为 特征索引号:特征值
-      }.mkString(" ")
+      val newText = text.split(" ").map { feature => {
+        val arr = feature.split(":")
+        val featureName = arr(0)
+        val feafureVal = if(arr.length<=1||"".equals(arr(1))) 0d else arr(1).toDouble
+        val featureIndex = featureIdxMap.getOrElse(featureName, -1)
+        (featureIndex , feafureVal)
       }
-      (rowIdx,newText)
-    }).toDF("id",p.outputCol)
+      }.filter{case(featureIndex , feafureVal)=>{
+        featureIndex >= 0
+      }}.sortBy(_._1).   //顺序
+        map{case(featureIndex , feafureVal)=>{
+        featureIndex + ":" + feafureVal //从 特征名:特征值 转为 特征索引号:特征值
+      }}.
+        mkString(" ")
+      (rowIdx, newText)
+    }).toDF("id", p.outputCol)
 
 
     //转换数据

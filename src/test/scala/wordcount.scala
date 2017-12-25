@@ -53,4 +53,13 @@ object WordCount {
     sc.stop()
   }
 
+  def test()={
+    val conf = new SparkConf().setAppName("")
+    val sc = new SparkContext(conf)
+    val inputRDD = sc.
+      textFile("/EML/Data/18065354-8A2C-446D-AEDC-F0278501914D/	18065354-8A2C-446D-AEDC-F0278501914D").
+      map(_.split("\t")).filter(_.length !=2).foreach(println)
+
+  }
+
 }
