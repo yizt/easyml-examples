@@ -58,7 +58,7 @@ object LogisticRegressionPredict {
     //预测数据
     val predictionAndLabels = testdata.map { case LabeledPoint(label, features) =>
         val prediction = model.predict(features)
-        (prediction, label)
+        s"${prediction} ${label}"
       }
     predictionAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
     sc.stop()

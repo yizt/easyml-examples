@@ -82,18 +82,22 @@ object WordTFIDF {
       map(arr => (arr(0), arr(1).toDouble)).toDF("word", "idf")
 
     //增加索引列id
-    val schema = inputDF.schema.add(StructField("id", LongType, true))
-    val newRdd = inputDF.rdd.zipWithIndex().map { case (row, id) => {
-      Row.merge(row, Row.fromTuple(Tuple1(id)))
-    }
-    }
-    val newDF = sqlContext.createDataFrame(newRdd, schema)
+    val newDF = if (!inputDF.schema.fieldNames.contains("id")) {
+      val schema = inputDF.schema.add(StructField("id", LongType, true))
+      val newRdd = inputDF.rdd.zipWithIndex().map { case (row, id) => {
+        Row.merge(row, Row.fromTuple(Tuple1(id)))
+      }
+      }
+      sqlContext.createDataFrame(newRdd, schema)
+    } else
+      inputDF
 
     //列转行
     val dataRDD = newDF.select("id", p.inputCol).map(row => {
       val rowIdx = row.getAs[Long]("id") //行号
       val text = row.getAs[String](p.inputCol)
-      text.split(" ").zipWithIndex.map { case (word, colIdx) => {
+      text.split(" ").distinct. //去重
+        zipWithIndex.map { case (word, colIdx) => {
         (word, colIdx, rowIdx) //词，列索引，行索引
       }
       }
@@ -109,7 +113,7 @@ object WordTFIDF {
     val wordTfidfDF = dataRDD.toDF("word", "colIdx", "id").
       join(idfDF, "word").
       join(tfDF, "word").rdd.map(row => {
-      val tf = row.getAs[String]("tf").toDouble
+      val tf = row.getAs[Int]("tf").toDouble
       val idf = row.getAs[Double]("idf")
       val word = row.getAs[String]("word")
       val colIdx = row.getAs[Int]("colIdx")
