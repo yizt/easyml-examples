@@ -15,12 +15,12 @@ object MultilayerPerceptronClassifierTrain {
                       model_out: String = "",  //模型保存路径
                     appname: String = "MultilayerPerceptronClassifier_Train",
                     max_iter: Int = 100,  //迭代次数
-                    blocksize:Int=128,
-                    seed:Long=1234L,
-                    layers_1:Int=4,
-                    layers_2:Int=5,
-                    layers_3:Int=4,
-                    layers_4:Int=3
+                    blocksize:Int=128,//块大小
+                    seed:Long=1234L,//种子
+                    layers_1:Int=4,//层1
+                    layers_2:Int=5,//层2
+                    layers_3:Int=4,//层3
+                    layers_4:Int=3//层4
                    )
   def main(args: Array[String]) {
     if (args.length < 10) {

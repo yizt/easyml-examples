@@ -16,10 +16,10 @@ object RandomForestRegressionTrain {
                     model_out: String = "",  //模型保存路径
                     appname: String = "RandomForestRegression_Train",
                     num_classes: Int = 2 , //类别数
-                    num_trees : Int= 3, // Use more in practice.
-                    feature_subset_strategy : String= "auto",// Let the algorithm choose.
+                    num_trees : Int= 3, // 树的个数Use more in practice.
+                    feature_subset_strategy : String= "auto",// 特征策略Let the algorithm choose.
                     impurity : String= "variance",//
-                    max_depth: Int = 4,//
+                    max_depth: Int = 4,//最大深度
                     max_bins : Int= 32//
                    )
   def main(args: Array[String]) {

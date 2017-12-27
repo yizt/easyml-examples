@@ -63,6 +63,7 @@ object MultilayerPerceptronClassifierPredict {
     val result =  model.transform(testdata)
     val predictionAndLabels = result.select("prediction", "label")
     predictionAndLabels.write.save(p.predict_out)//保存预测结果
+
     sc.stop()
   }
 
