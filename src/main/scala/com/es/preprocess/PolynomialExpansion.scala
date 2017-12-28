@@ -1,4 +1,4 @@
-package src.main.scala.com.es.preprocess
+package com.es.preprocess
 
 import com.es.util.DataFrameUtil
 import org.apache.spark.ml.feature.PolynomialExpansion
