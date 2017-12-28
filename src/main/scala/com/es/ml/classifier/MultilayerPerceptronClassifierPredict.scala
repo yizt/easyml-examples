@@ -54,7 +54,7 @@ object MultilayerPerceptronClassifierPredict {
   def run(p:Params): Unit = {
     val spark = SparkSession.builder.appName(p.appname).getOrCreate()
     val sc = spark.sparkContext
-
+    import spark.implicits._
     val testdata = spark.read.format("libsvm").load(p.test_data) //加载数据
 
     val model = MultilayerPerceptronClassificationModel.load(p.model_path) //加载模型

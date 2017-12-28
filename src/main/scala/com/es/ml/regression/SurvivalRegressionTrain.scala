@@ -1,4 +1,5 @@
 package com.es.ml.regression
+
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.ml.regression.AFTSurvivalRegression
 import org.apache.spark.sql.SparkSession
@@ -15,7 +16,8 @@ object SurvivalRegressionTrain {
                     appname: String = "SurvivalRegression_Train",
                     quantile_probabilities_1: Double = 0.3 , //
                     quantile_probabilities_2: Double = 0.6 , //
-                    quantiles_col:String="quantiles"
+                    quantiles_col:String="quantiles",
+                    delimiter:String=","//分隔符
                    )
   def main(args: Array[String]) {
     if (args.length < 6) {
@@ -50,6 +52,10 @@ object SurvivalRegressionTrain {
         .required()
         .text("quantiles_col")
         .action((x, c) => c.copy(quantiles_col = x))
+      opt[String]("delimiter")
+        .required()
+        .text("分隔符")
+        .action((x, c) => c.copy(delimiter = x))
     }
 
     parser.parse(args, default_params).map { params =>
@@ -63,16 +69,18 @@ object SurvivalRegressionTrain {
   def run(p:Params): Unit = {
     val spark = SparkSession.builder.appName(p.appname).getOrCreate()
     val sc = spark.sparkContext
+    import spark.implicits._
 
-    val training = spark.read.format("libsvm").load(p.train_data) //加载数据
+    val inputRDD = sc.textFile(p.train_data)
 
-    /*val training = spark.createDataFrame(Seq(
-      (1.218, 1.0, Vectors.dense(1.560, -0.605)),
-      (2.949, 0.0, Vectors.dense(0.346, 2.158)),
-      (3.627, 0.0, Vectors.dense(1.380, 0.231)),
-      (0.273, 1.0, Vectors.dense(0.520, 1.151)),
-      (4.199, 0.0, Vectors.dense(0.795, -0.226))
-    )).toDF("label", "censor", "features")*/
+    val inputRDDTuple =  inputRDD.map(line => {
+      val arr=line.split(p.delimiter).map(_.toDouble)
+      val vec:Array[Double]= new Array(arr.length-2)
+      Array.copy(arr,2,vec,0,arr.length-2)
+      (arr(0),arr(1),Vectors.dense(vec))
+    })
+
+    val training=spark.createDataFrame(inputRDDTuple).toDF("label", "censor", "features")
 
     val quantileProbabilities = Array(p.quantile_probabilities_1, p.quantile_probabilities_2)
     val aft = new AFTSurvivalRegression()
