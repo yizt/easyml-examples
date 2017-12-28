@@ -13,7 +13,7 @@ import org.apache.spark.sql.SQLContext
 object OneHotEncoder {
   /** 命令行参数 */
   case class Params(input: String = "", //输入数据,parquet格式
-                    output: String = "", //输出数据,text格式
+                    output: String = "", //输出数据,parquet格式
                     inputCol: String = "categoryIndex", //输入列名
                     outputCol: String = "categoryVec", //输出列名
                     resultCols: String = "", //输出结果保留的列,默认全部输出

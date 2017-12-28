@@ -17,7 +17,7 @@ object CountVectorizer {
                     output: String = "", //输出数据,parquet格式
                     inputCol: String = "", //输入列名
                     outputCol: String = "", //输出列名
-                    vcabSize:Int=3,//Max size of the vocabulary
+                    vcabSize:Int=3,//词汇最大长度 Max size of the vocabulary
                     minDF:Int=2,
                     resultCols: String = "", //输出结果保留的列,默认全部输出
                     appName: String = "CountVectorizer"
