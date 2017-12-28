@@ -55,12 +55,12 @@ object ALSPredict {
 
   }
 
-  case class Rating(userId: Int, movieId: Int, rating: Float, timestamp: Long)
+  case class Rating(userId: Int, movieId: Int, rating: Double, timestamp: Long)
 
   def parseRating(str: String): Rating = {
     val fields = str.split("::")
     assert(fields.size == 4)
-    Rating(fields(0).toInt, fields(1).toInt, fields(2).toFloat, fields(3).toLong)
+    Rating(fields(0).toInt, fields(1).toInt, fields(2).toDouble, fields(3).toLong)
   }
 
   def run(p: Params): Unit = {
@@ -73,7 +73,7 @@ object ALSPredict {
     val result = model.transform(testdata)
     val predictionAndLabels = result.select("prediction", "rating").
       map(row => {
-        val predict = row.getAs[Double]("prediction")
+        val predict = row.getAs[Float]("prediction")
         val label = row.getAs[Double]("rating")
         s"${predict} ${label}"
       })
