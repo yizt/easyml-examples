@@ -57,7 +57,7 @@ object DecisionTreeClassifierPredict {
     //预测数据
     val labelAndPreds = testdata.map { point =>
         val prediction = model.predict(point.features)
-        (point.label, prediction)
+        s"${prediction} ${point.label}"
       }
     labelAndPreds.saveAsTextFile(p.predict_out)//保存预测结果
     sc.stop()

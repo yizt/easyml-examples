@@ -60,8 +60,9 @@ object IsotonicRegressionPredict {
     //预测数据
     val labelAndPreds = testdata.map { point =>
         val predictedLabel = model.predict(point._2)
-        (predictedLabel, point._1)
+      s"${predictedLabel} ${point._1}"
       }
+
     labelAndPreds.saveAsTextFile(p.predict_out)//保存预测结果
     sc.stop()
   }

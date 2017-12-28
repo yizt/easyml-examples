@@ -61,7 +61,13 @@ object GeneralizedLinearRegressionPredict {
 
     //预测数据
     val result =  model.transform(testdata)
-    val predictionAndLabels = result.select("prediction", "label")
+
+    val predictionAndLabels = result.select("prediction", "label").
+      map(row => {
+        val predict = row.getAs[Float]("prediction")
+        val label = row.getAs[Double]("label")
+        s"${predict} ${label}"
+      })
     predictionAndLabels.write.save(p.predict_out)//保存预测结果
 
     sc.stop()
