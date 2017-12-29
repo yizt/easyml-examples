@@ -75,9 +75,9 @@ object DCT {
     val inputDF = sqlContext.read.parquet(p.input)
 
     val outputDF = new DCT()
-      .setInputCol("features")
-      .setOutputCol("featuresDCT")
-      .setInverse(false)
+      .setInputCol(p.inputCol)
+      .setOutputCol(p.outputCol)
+      .setInverse(p.inverse)
       .transform(inputDF)
 
     //保存结果

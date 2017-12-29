@@ -70,8 +70,8 @@ object OneHotEncoder {
     val inputDF = sqlContext.read.parquet(p.input)
 
     val outputDF = new OneHotEncoder()
-      .setInputCol("categoryIndex")
-      .setOutputCol("categoryVec")
+      .setInputCol(p.inputCol)
+      .setOutputCol(p.outputCol)
       .transform(inputDF)
 
     //保存结果

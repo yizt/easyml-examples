@@ -64,8 +64,7 @@ object SQLTransformer {
     import sqlContext.sparkSession.implicits._
     val inputDF = sqlContext.read.parquet(p.input)
 
-    val sqlTrans = new SQLTransformer().setStatement(
-      "SELECT *, (v1 + v2) AS v3, (v1 * v2) AS v4 FROM __THIS__")
+    val sqlTrans = new SQLTransformer().setStatement(p.statement)
 
     val outputDF=sqlTrans.transform(inputDF)
     //保存结果
