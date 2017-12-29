@@ -8,7 +8,10 @@ import scopt.OptionParser
 object PageRank {
   /** 命令行参数 */
   case class Params(data: String = "", //测试数据路径
-                    cluster_out: String = "", //结果保存路径
+                    data_2: String = "", //测试数据路径
+                    output: String = "", //结果保存路径
+                    tol:Double=0.0001,
+                    delimiter:String=",",//分隔符
                     appname: String = "PageRank"
                    )
   def main(args: Array[String]) {
@@ -24,14 +27,26 @@ object PageRank {
         .required()
         .text("测试数据路径")
         .action((x, c) => c.copy(data = x))
+      opt[String]("data_2")
+        .required()
+        .text("测试数据路径")
+        .action((x, c) => c.copy(data_2 = x))
       opt[String]("appname")
         .required()
         .text("appname")
         .action((x, c) => c.copy(appname = x))
-      opt[String]("cluster_out")
+      opt[String]("output")
         .required()
-        .text("聚类结果输出")
-        .action((x, c) => c.copy(cluster_out = x))
+        .text("结果保存路径")
+        .action((x, c) => c.copy(output = x))
+      opt[String]("delimiter")
+        .required()
+        .text("分隔符")
+        .action((x, c) => c.copy(delimiter = x))
+      opt[Double]("tol")
+        .required()
+        .text("tol")
+        .action((x, c) => c.copy(tol = x))
     }
     parser.parse(args, default_params).map { params =>
       run(params)
@@ -47,10 +62,11 @@ object PageRank {
     // Load the edges as a graph
     val data = GraphLoader.edgeListFile(sc,p.data)
     // Run PageRank
-    val ranks = data.pageRank(0.0001).vertices
+    val ranks = data.pageRank(p.tol).vertices
+
     // Join the ranks with the usernames
-    val users = sc.textFile("data/graphx/users.txt").map { line =>
-      val fields = line.split(",")
+    val users = sc.textFile(p.data_2).map { line =>
+      val fields = line.split(p.delimiter)
       (fields(0).toLong, fields(1))
     }
     val ranksByUsername = users.join(ranks).map {
@@ -58,8 +74,8 @@ object PageRank {
     }
     // Print the result
     println(ranksByUsername.collect().mkString("\n"))
+    ranksByUsername.saveAsTextFile(p.output)
     //打印所有中心点
-    //保存聚类结果
     sc.stop()
   }
 
