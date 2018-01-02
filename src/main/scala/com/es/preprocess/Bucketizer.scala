@@ -77,7 +77,7 @@ object Bucketizer {
 
     //val splits = Array(Double.NegativeInfinity, -0.5, 0.0, 0.5, Double.PositiveInfinity)
     val arr=p.splits.split(",")
-    val split=arr.map(_.toDouble)
+    val split:Array[Double]=arr.map(_.toDouble)
 
     val outputDF = new Bucketizer()
       .setInputCol(p.inputCol)
