@@ -11,7 +11,6 @@ import scopt.OptionParser
   * Word2Vec训练
   */
 object Word2VecTrain {
-
   /** 命令行参数 */
   case class Params(corpus: String = "", //训练数据
                     modelPath: String = "", //模型保存路径

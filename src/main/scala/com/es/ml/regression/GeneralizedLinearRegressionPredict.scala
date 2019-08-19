@@ -55,13 +55,20 @@ object GeneralizedLinearRegressionPredict {
     val spark = SparkSession.builder.appName(p.appname).getOrCreate()
     val sc = spark.sparkContext
 
+    import spark.implicits._
     val testdata = spark.read.format("libsvm").load(p.test_data) //加载数据
 
     val model = GeneralizedLinearRegressionModel.load(p.model_path) //加载模型
 
     //预测数据
     val result =  model.transform(testdata)
-    val predictionAndLabels = result.select("prediction", "label")
+
+    val predictionAndLabels = result.select("prediction", "label").
+      map(row => {
+        val predict = row.getAs[Float]("prediction")
+        val label = row.getAs[Double]("label")
+        s"${predict} ${label}"
+      })
     predictionAndLabels.write.save(p.predict_out)//保存预测结果
 
     sc.stop()

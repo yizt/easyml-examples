@@ -1,5 +1,6 @@
 package com.es.ml.classifier
 
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.mllib.util.MLUtils
@@ -56,11 +57,11 @@ object RandomForestClassifierPredict {
     val model = RandomForestModel.load(sc, p.model_path) //加载模型
     val testdata = MLUtils.loadLibSVMFile(sc,p.test_data) //加载数据
     //预测数据
-    val labelAndPreds = testdata.map { point =>
-        val prediction = model.predict(point.features)
-        (point.label, prediction)
+    val predictionAndLabels = testdata.map { case LabeledPoint(label, features) =>
+        val prediction = model.predict(features)
+        s"${prediction} ${label}"
       }
-    labelAndPreds.saveAsTextFile(p.predict_out)//保存预测结果
+    predictionAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
     sc.stop()
   }
 

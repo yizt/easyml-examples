@@ -1,6 +1,7 @@
 package com.es.ml.classifier
 
 import org.apache.spark.mllib.classification.{NaiveBayes, NaiveBayesModel}
+import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.{SparkConf, SparkContext}
 import scopt.OptionParser
@@ -56,8 +57,10 @@ object NaiveBayesPredict {
     val model = NaiveBayesModel.load(sc, p.model_path) //加载模型
     val testdata = MLUtils.loadLibSVMFile(sc,p.test_data) //加载数据
     //预测数据
-    val predictionAndLabels = testdata.map(p => (model.predict(p.features), p.label))
-
+    val predictionAndLabels = testdata.map { case LabeledPoint(label, features) =>
+        val prediction = model.predict(features)
+        s"${prediction} ${label}"
+      }
     predictionAndLabels.saveAsTextFile(p.predict_out)//保存预测结果
     sc.stop()
   }

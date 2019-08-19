@@ -21,7 +21,7 @@ object GradientBoostedTreesRegressionTrain {
                     max_depth:Int=5 //最大深度
                    )
   def main(args: Array[String]) {
-    if (args.length < 2) {
+    if (args.length < 7) {
       System.err.println("Usage: <file>")
       System.exit(1)
     }
